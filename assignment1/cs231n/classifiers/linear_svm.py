@@ -82,9 +82,10 @@ def svm_loss_vectorized(W, X, y, reg):
 
   #scores is now a (5000, 10) Matrix and y_scores is (5000, )
   #We broadcast these two matrices by reshaping y_scores to (5000,1)
-  #Now while broadcasting , each entry in y_scores[i] is made to a row vector of size 10 and subtracted
+  #Now while broadcasting , each entry in y_scores[i] (old) is made to a row vector of size 10 and subtracted
   #from each row of scores which gets the Li for each row in margin
   margin = np.maximum(0, (scores - y_scores.reshape((num_train,1)) + 1) )
+
   margin[np.arange(num_train), y] = 0
 
   loss = np.mean(np.sum(margin, axis = 1))
@@ -104,7 +105,12 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  gradient = margin
+  gradient[margin > 0] = 1
+  row_sum = np.sum(margin, axis = 1)
+  gradient[np.arange(num_train), y] = -row_sum.T
+  dW = X.T.dot(gradient)
+  dW = dW/num_train + 2*reg*W
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
